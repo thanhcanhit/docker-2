@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  vote:
+    build: ./vote
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - voting-network
+
+  result:
+    build: ./result
+    ports:
+      - "5001:5001"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - voting-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - voting-network
+
+  worker:
+    build: ./worker
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    networks:
+      - voting-network
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voting_db
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - voting-network
+
+volumes:
+  redis-data:
+  pg-data:
+
+networks:
+  voting-network:
+    driver: bridge
