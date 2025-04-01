@@ -30,21 +30,25 @@ public class Worker {
     }
 
     private static Jedis connectToRedis(String host) {
-        Jedis conn = null;
-        
-        while (conn == null) {
+    Jedis conn = null;
+    
+    while (conn == null) {
+        try {
+            // Use the hostname and port explicitly
+            conn = new Jedis(host, 6379);
+            // Test the connection
+            conn.ping();
+            System.out.println("Connected to Redis");
+        } catch (Exception e) {
+            System.out.println("Waiting for Redis connection... " + e.getMessage());
             try {
-                conn = new Jedis(host);
-            } catch (JedisConnectionException e) {
-                System.out.println("Waiting for Redis connection...");
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException ie) {}
-            }
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException ie) {}
         }
-        
-        return conn;
     }
+    
+    return conn;
+}
 
     private static Connection connectToDB(String host) throws SQLException {
         Connection conn = null;
